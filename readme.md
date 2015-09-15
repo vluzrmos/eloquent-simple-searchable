@@ -67,3 +67,14 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 }
 ```
 
+And in your controller or anywhere:
+
+```php
+$users = User::search('Jonh');
+
+// or replace the default searchable fields:
+
+$users = User::search('Jonh', ['name' => 'full_text']);
+
+```
+
