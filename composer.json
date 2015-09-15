@@ -5,7 +5,7 @@
     "laravel", "eloquent", "database"
   ],
   "license": "MIT",
-  "type": "project",
+  "type": "package",
   "require": {
     "illuminate/database": "~5.0"
   },
