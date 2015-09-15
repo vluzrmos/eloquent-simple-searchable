@@ -1,6 +1,6 @@
 {
   "name": "vluzrmos/eloquent-simple-searchable",
-  "description": "A Eloquent Simple Searchable Scope.",
+  "description": "An Eloquent Simple Searchable Scope.",
   "keywords": [
     "laravel", "eloquent", "database"
   ],
