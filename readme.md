@@ -27,9 +27,9 @@ class User extends Model
 
 the attribute $searchable should contain the index with a column or a related column and the value is a type of the search which includes:
 
-`left_like`: The value of the field should match on left side;
+`left_text`: The value of the field should match on left side;
 
-`right_like`: The value of the field should match on right side;
+`right_text`: The value of the field should match on right side;
 
 `equals`: The value o f the field should match equals to the searched text;
 
