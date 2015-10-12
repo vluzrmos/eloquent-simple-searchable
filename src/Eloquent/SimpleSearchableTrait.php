@@ -2,37 +2,57 @@
 
 namespace Vluzrmos\SimpleSearchable\Eloquent;
 
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Eloquent\Builder as EloquentQueryBuilder;
+
+/**
+ * Class SimpleSearchableTrait
+ * @method static QueryBuilder|EloquentQueryBuilder search($text, $searchable=[])
+ */
 trait SimpleSearchableTrait
 {
     /**
      * Scope for search eloquent model with related columns.
      *
-     * @param  mixed $query
+     * @param  QueryBuilder|EloquentQueryBuilder $query
      * @param  string $text
      * @param  array $searchable
      * @return void
      */
     public function scopeSearch($query, $text, $searchable = [])
     {
-        $searchable = empty($searchable) ? $this->searchable : $searchable;
+        $searchable = $this->searchableFields($searchable);
 
-        $query->where(function ($query) use ($text, $searchable) {
-            foreach ($searchable as $field => $type) {
-                $where = 'process' . studly_case($type) . 'Where';
+        if(!empty($searchable)) {
+            $query->where(function ($query) use ($text, $searchable) {
+                /** @var QueryBuilder|EloquentQueryBuilder $query */
 
-                list($relation, $column) = $this->splitFieldWithRelation($field);
+                foreach ($searchable as $field => $type) {
+                    $where = 'process' . studly_case($type) . 'Where';
 
-                $callback = function ($query) use ($column, $type, $text, $where) {
-                    $this->{$where}($query, $column, $text);
-                };
+                    list($relation, $column) = $this->splitFieldWithRelation($field);
 
-                if ($relation) {
-                    $query->orWhereHas($relation, $callback);
-                } else {
-                    $query->orWhere($callback);
+                    $callback = function ($query) use ($column, $type, $text, $where) {
+                        $this->{$where}($query, $column, $text);
+                    };
+
+                    if ($relation) {
+                        $query->orWhereHas($relation, $callback);
+                    } else {
+                        $query->orWhere($callback);
+                    }
                 }
-            }
-        });
+            });
+        }
+    }
+
+    /**
+     * @param array $replacements
+     * @return array
+     */
+    public function searchableFields($replacements = [])
+    {
+        return (empty($replacements) && isset($this->searchable)) ? $this->searchable : $replacements;
     }
 
     /**
@@ -61,19 +81,19 @@ trait SimpleSearchableTrait
 
     /**
      * Process Where Like query
-     * @param  mixed $query
+     * @param  QueryBuilder|EloquentQueryBuilder $query
      * @param  string $column
      * @param  string $text
      * @return mixed
      */
     protected function processLikeWhere($query, $column, $text)
     {
-        return $query->where($column, 'like', '%' . addcslashes($text, '%_.') . '%');
+        return $query->where($column, 'like', '%' . $this->quoteToLikeStatement($text) . '%');
     }
 
     /**
      * Process Where Equals query
-     * @param  mixed $query
+     * @param  QueryBuilder|EloquentQueryBuilder $query
      * @param  string $column
      * @param  string $text
      * @return mixed
@@ -85,37 +105,45 @@ trait SimpleSearchableTrait
 
     /**
      * Process Full Text where query
-     * @param  mixed $query
+     * @param  QueryBuilder|EloquentQueryBuilder $query
      * @param  string $column
      * @param  string $text
      * @return mixed
      */
     protected function processFullTextWhere($query, $column, $text)
     {
-        return $query->where($column, 'like', '%' . preg_replace('/\s+/', '%', addcslashes($text, '%_.')) . '%');
+        return $query->where($column, 'like', '%' . preg_replace('/\s+/', '%', $this->quoteToLikeStatement($text)) . '%');
     }
 
     /**
      * Process Where Left Text Query
-     * @param  mixed $query
+     * @param  QueryBuilder|EloquentQueryBuilder $query
      * @param  string $column
      * @param  string $text
      * @return mixed
      */
     protected function processLeftTextWhere($query, $column, $text)
     {
-        return $query->where($column, 'like', addcslashes($text, '%_.') . '%');
+        return $query->where($column, 'like', $this->quoteToLikeStatement($text) . '%');
     }
 
     /**
      * Process Where Right Text Query
-     * @param  mixed $query
+     * @param  QueryBuilder|EloquentQueryBuilder $query
      * @param  string $column
      * @param  string $text
      * @return mixed
      */
     protected function processRightTextWhere($query, $column, $text)
     {
-        return $query->where($column, 'like', '%' . addcslashes($text, '%_.'));
+        return $query->where($column, 'like', '%' . $this->quoteToLikeStatement($text));
+    }
+
+    /**
+     * @param string $text
+     * @return string
+     */
+    protected function quoteToLikeStatement($text) {
+        return addcslashes($text, '%_.');
     }
 }

@@ -6,7 +6,7 @@
 
 ### Usage
 
-Put the trait into your model:
+Put that trait into your model:
 
 ```php
 
@@ -25,17 +25,14 @@ class User extends Model
 }
 ```
 
-the attribute $searchable should contain the index with a column or a related column and the value is a type of the search which includes:
+The attribute $searchable should contain the index with a column or a related column and the value is a type of the search which includes:
 
-`left_text`: The value of the field should match on left side;
+ * `left_text`: Match the left side of the column value
+ * `right_text`:  Match the right side of the column value
+ * `equals`: The searchd text should be equals to the column value
+ * `full_text`: The searched text should be in any position of the searchd column.
 
-`right_text`: The value of the field should match on right side;
-
-`equals`: The value o f the field should match equals to the searched text;
-
-`full_text`: The words in the searched text should be in any position, but in the same order, of the field;
-
-### Real life usage
+### Real Life Usage
 
 ```php
 
@@ -70,11 +67,11 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 And in your controller or anywhere:
 
 ```php
-$users = User::search('Jonh');
+$users = User::search('Jonh')->get();
 
 // or replace the default searchable fields:
 
-$users = User::search('Jonh', ['name' => 'full_text']);
-
+$users = User::search('Jonh', ['name' => 'full_text'])->get();
 ```
 
+> Note: The `search` method is a scope, so you need to use query builder methods like `get` or `all` to perform the search and get a collection of the results.
