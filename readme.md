@@ -1,5 +1,7 @@
 ## Eloquent Simple Searchable
 
+[![Latest Stable Version](https://poser.pugx.org/vluzrmos/eloquent-simple-searchable/v/stable)](https://packagist.org/packages/vluzrmos/eloquent-simple-searchable) [![Total Downloads](https://poser.pugx.org/vluzrmos/eloquent-simple-searchable/downloads)](https://packagist.org/packages/vluzrmos/eloquent-simple-searchable) [![Latest Unstable Version](https://poser.pugx.org/vluzrmos/eloquent-simple-searchable/v/unstable)](https://packagist.org/packages/vluzrmos/eloquent-simple-searchable) [![License](https://poser.pugx.org/vluzrmos/eloquent-simple-searchable/license)](https://packagist.org/packages/vluzrmos/eloquent-simple-searchable)
+
 ### Installation
 
 `composer require vluzrmos/eloquent-simple-searchable`
