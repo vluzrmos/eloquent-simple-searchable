@@ -32,8 +32,16 @@ trait SimpleSearchableTrait
 
                     list($relation, $column) = $this->splitFieldWithRelation($field);
 
-                    $callback = function ($query) use ($column, $type, $text, $where) {
-                        $this->{$where}($query, $column, $text);
+                    if ($relation) {
+                        $relationInstance = $this->$relation();
+                        $table = $relationInstance->getRelated()->getTable();
+                    }
+                    else {
+                        $table = $this->getTable();
+                    }
+
+                    $callback = function ($query) use ($table, $column, $type, $text, $where) {
+                        $this->{$where}($query, $table.'.'.$column, $text);
                     };
 
                     if ($relation) {
