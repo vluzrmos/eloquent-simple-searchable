@@ -4,6 +4,7 @@ namespace Vluzrmos\SimpleSearchable\Eloquent;
 
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Builder as EloquentQueryBuilder;
+use Illuminate\Support\Str;
 
 /**
  * Class SimpleSearchableTrait
@@ -28,7 +29,7 @@ trait SimpleSearchableTrait
                 /** @var QueryBuilder|EloquentQueryBuilder $query */
 
                 foreach ($searchable as $field => $type) {
-                    $where = 'process' . studly_case($type) . 'Where';
+                    $where = 'process' . Str::studly($type) . 'Where';
 
                     list($relation, $column) = $this->splitFieldWithRelation($field);
 
