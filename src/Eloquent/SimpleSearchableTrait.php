@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 /**
  * Class SimpleSearchableTrait
- * @method static QueryBuilder|EloquentQueryBuilder search($text, $searchable=[])
+ * @method static QueryBuilder|EloquentQueryBuilder search($text, array $searchable=[])
  */
 trait SimpleSearchableTrait
 {
@@ -24,44 +24,80 @@ trait SimpleSearchableTrait
     {
         $searchable = $this->searchableFields($searchable);
 
-        if(!empty($searchable)) {
-            $query->where(function ($query) use ($text, $searchable) {
-                /** @var QueryBuilder|EloquentQueryBuilder $query */
-
-                foreach ($searchable as $field => $type) {
-                    $where = 'process' . Str::studly($type) . 'Where';
-
-                    list($relation, $column) = $this->splitFieldWithRelation($field);
-
-                    if ($relation) {
-                        $relationInstance = $this->$relation();
-                        $table = $relationInstance->getRelated()->getTable();
-                    }
-                    else {
-                        $table = $this->getTable();
-                    }
-
-                    $callback = function ($query) use ($table, $column, $type, $text, $where) {
-                        $this->{$where}($query, $table.'.'.$column, $text);
-                    };
-
-                    if ($relation) {
-                        $query->orWhereHas($relation, $callback);
-                    } else {
-                        $query->orWhere($callback);
-                    }
-                }
-            });
+        if (empty($searchable)) {
+            return;
         }
+
+        $query->where(function ($query) use ($text, $searchable) {
+            $this->processSearchableFields($query, $text, $searchable);
+        });
+    }
+
+    /**
+     * @param QueryBuilder|EloquentQueryBuilder $query
+     * @param string $text
+     * @param array $searchable
+     */
+    protected function processSearchableFields($query, $text, array $searchable)
+    {
+        foreach ($searchable as $field => $type) {
+            $where = $this->getWhereConditionMethodName($type);
+
+            list($relation, $column) = $this->splitFieldWithRelation($field);
+
+            $table = $this->getRelationTable($relation, $this->getTable());
+            
+            $callback = function ($query) use ($table, $column, $text, $where) {
+                $this->{$where}($query, $table.'.'.$column, $text);
+            };
+
+            $this->applyQueryConditionCallback($query, $relation, $callback);
+        }
+    }
+
+    /**
+     * @param QueryBuilder|EloquentQueryBuilder $query
+     * @param string|null $relation
+     * @param callable|\Closure $callback
+     */
+    protected function applyQueryConditionCallback($query, $relation, $callback)
+    {
+        if ($relation) {
+            return $query->orWhereHas($relation, $callback);
+        }
+
+        return $query->orWhere($callback);
+    }
+
+    protected function getWhereConditionMethodName($type)
+    {
+        return 'process' . Str::studly($type) . 'Where';
+    }
+
+    protected function getRelationTable($relation, $default = null)
+    {
+        if (empty($relation) || !method_exists($this, $relation)) {
+            return $default;
+        }
+
+        $relationInstance = $this->$relation();
+
+        return $relationInstance
+            ->getRelated()
+            ->getTable();
     }
 
     /**
      * @param array $replacements
      * @return array
      */
-    public function searchableFields($replacements = [])
+    public function searchableFields(array $replacements = [])
     {
-        return (empty($replacements) && isset($this->searchable)) ? $this->searchable : $replacements;
+        if (empty($replacements) && property_exists($this, 'searchable')) {
+            return $this->searchable;
+        }
+
+        return $replacements;
     }
 
     /**
@@ -152,7 +188,8 @@ trait SimpleSearchableTrait
      * @param string $text
      * @return string
      */
-    protected function quoteToLikeStatement($text) {
+    protected function quoteToLikeStatement($text)
+    {
         return addcslashes($text, '%_.');
     }
 }

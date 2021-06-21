@@ -14,7 +14,15 @@
       "Vluzrmos\\SimpleSearchable\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
   "config": {
     "preferred-install": "dist"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^3"
   }
 }
