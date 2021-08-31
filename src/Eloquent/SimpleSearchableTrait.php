@@ -76,15 +76,27 @@ trait SimpleSearchableTrait
 
     protected function getRelationTable($relation, $default = null)
     {
-        if (empty($relation) || !method_exists($this, $relation)) {
+        if (empty($relation)) {
             return $default;
         }
 
-        $relationInstance = $this->$relation();
+        $methods = preg_split('/\./', $relation);
 
-        return $relationInstance
-            ->getRelated()
-            ->getTable();
+        if (count($methods) === 1) {
+            $relationInstance = $this->$relation();
+
+            return $relationInstance
+                ->getRelated()
+                ->getTable();
+        }
+        
+        $model = $this->{$methods[0]}()->getModel();
+
+        foreach (array_slice($methods, 1) as $method) {
+            $model = $model->$method()->getModel();
+        }
+
+        return $model->getTable();
     }
 
     /**
